@@ -14,8 +14,11 @@ if __name__ == '__main__':
 
 # get all local IP adresses with corresponding (human-readable, if available) NIC
 # request user input -- which IP / NIC to use
-    # get NIC information (WMIC = WinXP Pro+)
-    cmd = "wmic nicconfig where dnshostname='{}' get ipaddress, macaddress, description 2> nul".format(socket.gethostname()) # redirecting stderr to nul to prevent error output
+
+    # get NIC information (WMIC = WinXP Pro and later)
+    cmd = "wmic nicconfig where dnshostname='{}' \
+        get ipaddress, macaddress, description \
+        2> nul".format(socket.gethostname()) # redirecting stderr to nul to prevent error output
     stream = os.popen(cmd)
     output = stream.read()
     stream.close()
@@ -27,7 +30,7 @@ if __name__ == '__main__':
     # make sure we have a NIC to work with
     if (not lines):
         print('No suitable network interfaces found. Exiting...')
-        sys.exit(1)
+        sys.exit() # 0 = default
     # one or more suitable interfaces found
     else:
         # parse interface list
@@ -66,7 +69,10 @@ if __name__ == '__main__':
             print()
         
         # display information for chosen interface
-        print("Listening on: {}".format(selected_device.get('ipv4')))
+        msg = "Listening on: {}".format(selected_device.get('ipv4'))
+        print(msg)
+        print("-" * len(msg))
+        print()
 
 
 # create a raw socket and bind it to a random available port on chosen IP / NIC
