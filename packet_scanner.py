@@ -7,13 +7,49 @@ import os
 import sys
 import socket 
 import re
+from multiprocessing import Process
+import time
+
+
+def showData(data):
+    bit_data = ''
+    
+    for b in data:
+        bitStr = ''
+    
+        for i in range(8):
+            bitStr += str((b >> i) & 1)
+    
+        bit_data += bitStr[::-1]
+    
+    # print(bit_data) # DEBUG
+
+    print()
+    print("Version: {}".format(int(bit_data[0:4], 2)))
+    print("IHL: {}".format(int(bit_data[4:8], 2)))
+    print("DSCP: {}".format(int(bit_data[8:14], 2)))
+    print("ECN: {}".format(int(bit_data[14:16], 2)))
+    print("Total Length: {}".format(int(bit_data[16:32], 2))) # int() parses the string as is, resulting in big-endian form
+
+def readPackets(conn):
+    # for all eternity
+    while True:
+        # receive from socket
+        packet = conn.recvfrom(65535) # returns tuple with (bytes, address of socket)
+        
+        showData(packet[0]) 
+        # update packet number
+            
+        # display (optional?)
+        # save to file (optional?)
+
+
+
 
 
 if __name__ == '__main__':
-    pass
-
-# get all local IP adresses with corresponding (human-readable, if available) NIC
-# request user input -- which IP / NIC to use
+    # get all local IP adresses with corresponding (human-readable, if available) NIC
+    # request user input -- which IP / NIC to use
 
     # get NIC information (WMIC = WinXP Pro and later)
     cmd = "wmic nicconfig where dnshostname='{}' \
@@ -67,29 +103,41 @@ if __name__ == '__main__':
             choice = int(input("Choose a Network Interface to listen on: "))
             selected_device = device_list[choice]
             print()
-        
-        # display information for chosen interface
-        msg = "Listening on: {}".format(selected_device.get('ipv4'))
-        print(msg)
-        print("-" * len(msg))
-        print()
+            
 
+    # create a raw socket and bind it to a random available port on chosen IP / NIC
+    conn = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
+    conn.bind((selected_device.get('ipv4'), 0)) # bind on random available port
 
-# create a raw socket and bind it to a random available port on chosen IP / NIC
+    # include the IP headers
+    conn.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+    # enable promiscuous mode to forward all packets received
+    conn.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
 
-# include the IP headers
-
-# enable promiscuous mode to forward all packets received
+    # let user know how to stop the program
+    print("To exit the program gracefully, press 'Enter'.")
     
-# open child process
-    # for all eternity
-        # receive from socket
-        
-        # update packet number
-            
-        # display (optional?)
-        # save to file (optional?)
-            
-# wait for user input to exit
-# close socket
-# exit
+    # display information for chosen interface
+    msg = "Listening on: {}".format(selected_device.get('ipv4'))
+    print(msg)
+    print()
+    
+    # give user time to read the starting messages
+    print("Starting in 5 seconds.")
+    print("-" * len(msg))
+    print()
+    time.sleep(5)
+    
+    # open child process
+    proc = Process(target=readPackets, args=(conn,))
+    proc.start()
+           
+    # wait for user input to exit
+    input()
+    proc.kill()   
+     
+    # close socket
+    conn.close()
+    
+    # exit
+    sys.exit()
