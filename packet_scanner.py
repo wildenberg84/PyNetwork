@@ -4,6 +4,7 @@
 # Displays packet information and saves packets as binary data 
 
 import os
+import sys
 import socket 
 import re
 
@@ -15,47 +16,54 @@ if __name__ == '__main__':
 # request user input -- which IP / NIC to use
     # get NIC information (WMIC = WinXP Pro+)
     stream = os.popen("wmic nicconfig where dnshostname='{}' get ipaddress, macaddress, description".format(socket.gethostname()))
+    #stream = os.popen("wmic nicconfig where dnshostname='{}' get ipaddress, macaddress, description 2> nul".format("does not exist")) # redirecting stderr to nul to prevent error output
     output = stream.read()
+    stream.close()
     
     # remove headers
     lines = output.split('\n')
     lines = list(filter(None, lines))[1:]
     
-    # parse interface list
-    device_list = []
-    
-    for line in lines:
-        name = re.search(r'([a-zA-Z]+\s)+', line).group()
-        ipv4 = re.search(r'(?:\d{1,3}\.){3}\d{1,3}', line).group()
-        mac = re.search(r'(?:(?:[A-Z0-9]){2}\:){5}(?:[A-Z]|[0-9]){2}', line).group()
+    # make sure we have a NIC to work with
+    if (not lines):
+        print('No suitable network interfaces found. Exiting...')
+        sys.exit(1)
+    else:
+        # parse interface list
+        device_list = []
         
-        device = {'name' : name, 'ipv4' : ipv4, 'mac' : mac}
-        device_list.append(device)    
-      
-    # print out interfaces we can use  
-    ''' TODO: check whether we have any interfaces
-        and don't ask for input if we only have one '''
-    print("Suitable Network Interfaces:")
-    print()
-    
-    
-    line_number = 0
-    for device in device_list:    
-        ip = '{:<20}'.format(device.get('ipv4'))
-        mac = '{:<20}'.format(device.get('mac'))
-        name = '{:<20}'.format(device.get('name'))
+        for line in lines:
+            name = re.search(r'([a-zA-Z]+\s)+', line).group()
+            ipv4 = re.search(r'(?:\d{1,3}\.){3}\d{1,3}', line).group()
+            mac = re.search(r'(?:(?:[A-Z0-9]){2}\:){5}(?:[A-Z]|[0-9]){2}', line).group()
             
-        print("({}) {ip} {mac} {name}".format(line_number, ip=ip, mac=mac, name=name))
-        line_number += 1
-    
-    print()
-    
-    # ask the user which device to use
-    choice = int(input("Choose a Network Interface to listen on: "))
-    print()
-    
-    # display information for chosen interface
-    print("Listening on: {}".format(device_list[choice].get('ipv4')))
+            device = {'name' : name, 'ipv4' : ipv4, 'mac' : mac}
+            device_list.append(device)    
+          
+        # print out interfaces we can use  
+        ''' TODO: check whether we have any interfaces
+            and don't ask for input if we only have one '''
+        print("Suitable Network Interfaces:")
+        print()
+        
+        
+        line_number = 0
+        for device in device_list:    
+            ip = '{:<20}'.format(device.get('ipv4'))
+            mac = '{:<20}'.format(device.get('mac'))
+            name = '{:<20}'.format(device.get('name'))
+                
+            print("({}) {ip} {mac} {name}".format(line_number, ip=ip, mac=mac, name=name))
+            line_number += 1
+        
+        print()
+        
+        # ask the user which device to use
+        choice = int(input("Choose a Network Interface to listen on: "))
+        print()
+        
+        # display information for chosen interface
+        print("Listening on: {}".format(device_list[choice].get('ipv4')))
 
 
 # create a raw socket and bind it to a random available port on chosen IP / NIC
