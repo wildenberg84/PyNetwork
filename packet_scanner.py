@@ -17,8 +17,8 @@ if __name__ == '__main__':
 
     # get NIC information (WMIC = WinXP Pro and later)
     cmd = "wmic nicconfig where dnshostname='{}' \
-        get ipaddress, macaddress, description \
-        2> nul".format(socket.gethostname()) # redirecting stderr to nul to prevent error output
+           get ipaddress, macaddress, description \
+           2> nul".format(socket.gethostname()) # redirecting stderr to nul to prevent error output
     stream = os.popen(cmd)
     output = stream.read()
     stream.close()
