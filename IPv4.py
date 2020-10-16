@@ -1,17 +1,48 @@
-
-
-class IPv4_packet:
+# requires empty, memoryview or IP packet binary
+class IPv4_Packet:
     
-    def __init__(self):
+    def __init__(self, packet=None):
+        self.header = None
+        self.options = None
+        self.payload = None
+        
+        # if no packet was given, make a new one
+        if (packet == None):
+            # initialize 20 bytes of zeroes
+            self.header = IPv4_Header()
+        # else parse the packet data
+        else:
+            # if we have a memoryview
+            if (type(packet) == memoryview):
+                self.header = IPv4_Header(packet[:20])
+            # else create a memoryview first
+            else:
+                pass    
+
+    
+    def get_options(self):
         pass
     
-    def parse_packet(self, packet):
-        # parse binary data of IP packet
+    def set_options(self):
         pass
+    
+    def get_payload(self):
+        pass
+    
+    def set_payload(self, payload):
+        pass
+    
+    
+    
+    
+class IPv4_Header:   
+    # requires a memoryview
+    def __init__(self, header=None):
+        self.header = header 
     
     
     def get_version(self):
-        pass
+        return self.header[0] >> 4
     
     def set_version(self, version):
         pass
@@ -88,7 +119,7 @@ class IPv4_packet:
     def set_header_checksum(self, checksum):
         pass
     
-    def get_source_Address(self):
+    def get_source_address(self):
         pass
     
     def set_source_address(self, address):
@@ -98,16 +129,4 @@ class IPv4_packet:
         pass
     
     def set_destination_address(self, address):
-        pass
-    
-    def get_options(self):
-        pass
-    
-    def set_options(self):
-        pass
-    
-    def get_payload(self):
-        pass
-    
-    def set_payload(self, payload):
         pass
