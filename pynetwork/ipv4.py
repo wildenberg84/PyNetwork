@@ -1,25 +1,30 @@
+"""This is the IPv4 module.
+
+This module does IPv4 stuff.
+
+TODO: rewrite module description
+"""
+
+from pynetwork.custom_exceptions import NonWritableMemoryviewError
+
 # requires empty, memoryview or IP packet binary
-class IPv4_Packet:
+class IPv4Packet:
     
     def __init__(self, packet=None):
-        self.header = None
-        self.options = None
-        self.payload = None
+        self.header = None # IPv4Header object
+        self.options = None # IPv4Options object
+        self.payload = None # memoryview of payload data
         
         # if no packet was given, make a new one
-        if (packet == None):
-            # initialize 20 bytes of zeroes
-            self.header = IPv4_Header()
+        if(packet == None):
+            self.header = IPv4Header()
         # else parse the packet data
         else:
-            # if we have a memoryview
-            if (type(packet) == memoryview):
-                self.header = IPv4_Header(packet[:20])
-            # else create a memoryview first
-            else:
-                pass    
+            self.header = IPv4Header(packet[:20])    
 
-    
+        assert(self.header != None) # make sure we actually have something
+        
+        
     def get_options(self):
         pass
     
@@ -35,10 +40,21 @@ class IPv4_Packet:
     
     
     
-class IPv4_Header:   
-    # requires a memoryview
-    def __init__(self, header=None):
-        self.header = header 
+class IPv4Header:   
+    # requires a writeable memoryview
+    def __init__(self, header=None):                
+        # reserve bytes if we don't have a header
+        if(header == None):
+            self.header = memoryview(bytearray(20))
+        elif(type(header) == memoryview):
+            # make sure it's read / write
+            if(header.readonly):
+                raise NonWritableMemoryviewError(self.__class__.__name__ + " requires a writable memoryview")
+            else:
+                self.header = header
+        # wrong argument type
+        else:
+            raise TypeError(self.__class__.__name__ + ' constructor requires a writable memoryview')
     
     
     def get_version(self):
