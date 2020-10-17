@@ -61,25 +61,25 @@ class IPv4Header:
         return self.header[0] >> 4
     
     def set_version(self, version):
-        pass
+        self.header[0] = (version << 4) + self.get_ihl()
     
     def get_ihl(self):
-        pass
+        return self.header[0] & 0b00001111
     
     def set_ihl(self, ihl):
-        pass
+        self.header[0] = (self.header[0] & 0b11110000) + ihl
     
     def get_dscp(self):
-        pass
+        return (self.header[1] & 0b11111100) >> 2
     
     def set_dscp(self, dscp):
-        pass
+        self.header[1] = (dscp << 2) + self.get_ecn()
     
     def get_ecn(self):
-        pass
+        return self.header[1] & 0b00000011
     
     def set_ecn(self, ecn):
-        pass
+        self.header[1] = (self.header[0] & 0b11111100) + ecn
     
     def get_total_length(self):
         pass
