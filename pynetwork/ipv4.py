@@ -1,4 +1,5 @@
-"""This is the IPv4 module.
+"""
+This is the IPv4 module.
 
 This module does IPv4 stuff.
 
@@ -7,6 +8,7 @@ TODO: rewrite module description
 
 from pynetwork.custom_exceptions import NonWritableMemoryviewError
 
+# TODO: write class description
 # requires empty, memoryview or IP packet binary
 class IPv4Packet:
     
@@ -39,7 +41,7 @@ class IPv4Packet:
     
     
     
-    
+# TODO: write class description    
 class IPv4Header:   
     # requires a writeable memoryview
     def __init__(self, header=None):                
@@ -57,6 +59,7 @@ class IPv4Header:
             raise TypeError(self.__class__.__name__ + ' constructor requires a writable memoryview')
     
     
+    ##### Start of GETTERS / SETTERS for IP header fields #####
     def get_version(self):
         return self.header[0] >> 4
     
@@ -79,70 +82,83 @@ class IPv4Header:
         return self.header[1] & 0b00000011
     
     def set_ecn(self, ecn):
-        self.header[1] = (self.header[0] & 0b11111100) + ecn
+        self.header[1] = (self.header[1] & 0b11111100) + ecn
     
+    def get_ecn_capable_transport(self):
+        return (self.header[1] & 0b00000010) >> 1
+    
+    def set_ecn_capable_transport(self, ecn_capable):
+        self.header[1] = (self.header[1] & 0b11111101) + (ecn_capable << 1)
+    
+    def get_congestion_experienced(self):
+        return self.header[1] & 0b00000001
+    
+    def set_congestion_experienced(self, congestion_experienced):
+        self.header[1] = (self.header[1] & 0b11111110) + congestion_experienced
+
     def get_total_length(self):
-        pass
+        return int.from_bytes(self.header[2:4], 'big', signed = False)
     
     def set_total_length(self, length):
-        pass
+        self.header[2:4] = length.to_bytes(2, 'big')
     
     def get_identification(self):
-        pass
+        return int.from_bytes(self.header[4:6], 'big', signed = False)
     
     def set_identification(self, identification):
-        pass
+        self.header[4:6] = identification.to_bytes(2, 'big')
     
     def get_flags(self):
-        pass
+        return (self.header[6] & 0b11100000) >> 5
     
     def set_flags(self, flags):
-        pass
+        self.header[6] = (flags << 5) + self.get_fragment_offset()
     
     def get_flag_df(self):
-        pass
+        return (self.header[6] & 0b01000000) >> 6 
     
     def set_flag_df(self, flag):
-        pass
+        self.header[6] = (self.header[6] & 0b10111111) + (flag << 6)
     
     def get_flag_mf(self):
-        pass
+        return (self.header[6] & 0b00100000) >> 5
     
     def set_flag_mf(self, flag):
-        pass
+        self.header[6] = (self.header[6] & 0b11011111) + (flag << 5)
     
     def get_fragment_offset(self):
-        pass
+        return int.from_bytes(self.header[6:8], 'big', signed = False) - (self.get_flags() << 13)
     
     def set_fragment_offset(self, offset):
-        pass
+        self.header[6:8] = ((self.get_flags() << 13) + offset).to_bytes(2, 'big')
     
     def get_time_to_live(self):
-        pass
+        return self.header[8]
     
     def set_time_to_live(self, ttl):
-        pass
+        self.header[8] = ttl
     
     def get_protocol(self):
-        pass
+        return self.header[9]
     
     def set_protocol(self, protocol):
-        pass
+        self.header[9] = protocol
     
     def get_header_checksum(self):
-        pass
+        return int.from_bytes(self.header[10:12], 'big', signed = False)
     
     def set_header_checksum(self, checksum):
-        pass
+        self.header[10:12] = checksum.to_bytes(2, 'big')
     
     def get_source_address(self):
-        pass
+        return int.from_bytes(self.header[12:16], 'big', signed = False)
     
     def set_source_address(self, address):
-        pass
+        self.header[12:16] = address.to_bytes(4, 'big')
     
     def get_destination_address(self):
-        pass
+        return int.from_bytes(self.header[16:20], 'big', signed = False)
     
     def set_destination_address(self, address):
-        pass
+        self.header[16:20] = address.to_bytes(4, 'big')
+    ##### End of GETTERS / SETTERS for IP header fields #####

@@ -1,4 +1,5 @@
-"""This is the custom_ module.
+"""
+This is the custom_ module.
 
 This module does IPv4 stuff.
 
