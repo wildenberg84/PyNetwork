@@ -18,13 +18,13 @@ class IPv4Packet:
         self.payload = None # memoryview of payload data
         
         # if no packet was given, make a new one
-        if(packet == None):
+        if packet == None:
             self.header = IPv4Header()
         # else parse the packet data
         else:
             self.header = IPv4Header(packet[:20])    
 
-        assert(self.header != None) # make sure we actually have something
+        assert self.header != None # make sure we actually have something
         
         
     def get_options(self):
@@ -46,11 +46,11 @@ class IPv4Header:
     # requires a writeable memoryview
     def __init__(self, header=None):                
         # reserve bytes if we don't have a header
-        if(header == None):
+        if header == None:
             self.header = memoryview(bytearray(20))
-        elif(type(header) == memoryview):
+        elif type(header) == memoryview:
             # make sure it's read / write
-            if(header.readonly):
+            if header.readonly:
                 raise NonWritableMemoryviewError(self.__class__.__name__ + " requires a writable memoryview")
             else:
                 self.header = header
