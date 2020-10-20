@@ -64,7 +64,7 @@ if __name__ == '__main__':
     lines = list(filter(None, lines))[1:]
     
     # make sure we have a NIC to work with
-    if (not lines):
+    if not lines:
         print('No suitable network interfaces found. Exiting...')
         sys.exit() # 0 = default
     # one or more suitable interfaces found
@@ -81,7 +81,7 @@ if __name__ == '__main__':
             device_list.append(device)    
           
         # skip selection if only one interface can be used
-        if (len(device_list) == 1):
+        if len(device_list) == 1:
             selected_device = device_list[0]
         else:
             # print out interfaces we can use
