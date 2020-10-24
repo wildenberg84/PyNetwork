@@ -40,8 +40,8 @@ class IPv4Packet:
         """
         
         self.header = None # IPv4Header object
-        self.options = None # IPv4Options object
-        self.payload = None # memoryview of payload data
+        self.options = None # options data
+        self.payload = None # payload data
         
         # if no packet was given, make a new one
         if packet == None:
@@ -57,25 +57,68 @@ class IPv4Packet:
             # wrong argument type
             else:
                 raise TypeError(self.__class__.__name__ + ' constructor requires a writable memoryview')  
-
-        assert self.header != None # make sure we actually have something
         
-        
-    def get_options(self):
-        # TODO: implement function
-        pass
     
-    def set_options(self):
-        # TODO: implement function
-        pass
+    def get_options(self):
+        """
+        Return the options.
+        
+        Returns
+        -------
+            IPv4Options 
+            
+        """
+        
+        return self.options
+    
+    def set_options(self, options):
+        """
+        Set the IPv4 options portion.
+        
+        Parameters
+        ----------
+            options : IPv4Options object 
+                      suitable IPv4Options constructor argument
+                
+        """
+        
+        if type(options) == IPv4Options:
+            self.options = options
+        else:
+            self.options = IPv4Options(options)
     
     def get_payload(self):
-        # TODO: implement function
-        pass
+        """
+        Return the payload.
+        
+        Returns
+        -------
+            writeable memoryview 
+            
+        """
+        
+        return self.payload
     
     def set_payload(self, payload):
-        # TODO: implement function
-        pass
+        """
+        Set the IPv4 payload portion.
+        
+        Parameters
+        ----------
+            payload : memoryview 
+                writable bytes representation of an IP packet's payload (in big endian)
+                
+        """
+        
+        if type(payload) == memoryview:
+            # make sure it's read / write
+            if payload.readonly:
+                raise NonWritableMemoryviewError("Payload argument requires a writable memoryview")
+            else:
+                self.payload = payload           
+        # wrong argument type
+        else:
+            raise IllegalArgumentError("Payload argument requires a writable memoryview") 
     
     
 class IPv4Header:   
@@ -166,6 +209,7 @@ class IPv4Header:
         ----------
             ihl : int
                 Internet Header Length (0 - 15, inclusive)
+                
         """
         
         self.header[0] = (self.header[0] & 0b11110000) + ihl
@@ -585,3 +629,40 @@ class IPv4Header:
         self.header[18] = address[2]
         self.header[19] = address[3]
     ##### End of GETTERS / SETTERS for IP header fields #####
+    
+    
+class IPv4Options:
+    """
+    A class to represent an IP packet's payload.
+    
+    Attributes
+    ----------
+        payload: memoryview
+            Writable byte(s) reperesentation of an IPv4 packet's payload.
+        
+    """
+    
+    # requires a writeable memoryview
+    def __init__(self, payload=None):  
+        """
+        Initializer of the IPv4Options class.
+    
+        Parameters
+        ----------
+            payload : memoryview
+                Writable binary representation of an IP packet's payload (in big endian).
+        
+        """
+                      
+        # no need to reserve bytes if we don't have a payload
+        if payload == None:
+            self.header = memoryview(bytearray())
+        elif type(payload) == memoryview:
+            # make sure it's read / write
+            if payload.readonly:
+                raise NonWritableMemoryviewError(self.__class__.__name__ + " requires a writable memoryview")
+            else:
+                self.payload = payload
+        # wrong argument type
+        else:
+            raise TypeError(self.__class__.__name__ + ' constructor requires a writable memoryview')    
